@@ -1,6 +1,6 @@
 // src/app/api/tasks/route.js
-import dbConnect from "../../../../lib/mongoose";
-import Task from "../../../../models/task";
+import dbConnect from "../../../lib/mongoose";
+import Task from "../../../models/task";
 
 export async function GET(req) {
   try {
