@@ -1,45 +1,53 @@
-
+// src/app/api/tasks/[id]/route.js
 import dbConnect from "@/lib/mongoose";
 import Task from "@/models/task";
 
-
 export async function GET(req, { params }) {
-  try {
-    await dbConnect();
-    const { id } = params;
-    const task = await Task.findById(id).lean();
-    if (!task) return new Response(JSON.stringify({ error: "Not found" }), { status: 404, headers: { "Content-Type": "application/json" } });
-    return new Response(JSON.stringify({ task }), { status: 200, headers: { "Content-Type": "application/json" } });
-  } catch (err) {
-    console.error("GET /api/tasks/[id] error:", err);
-    return new Response(JSON.stringify({ error: "Failed to fetch task" }), { status: 500, headers: { "Content-Type": "application/json" } });
-  }
+  await dbConnect();
+  const { id } = params;
+
+  if (!id) return new Response(JSON.stringify({ error: "ID missing" }), { status: 400 });
+
+  const task = await Task.findById(id).lean();
+  if (!task) return new Response(JSON.stringify({ error: "Task not found" }), { status: 404 });
+
+  return new Response(JSON.stringify({ task }), { status: 200, headers: { "Content-Type": "application/json" } });
 }
 
 export async function PUT(req, { params }) {
+  await dbConnect();
+
+  // Next.js 13 App Router passes params as an object
+  const id = params?.id;
+  if (!id) return new Response(JSON.stringify({ error: "ID missing" }), { status: 400 });
+
+  const body = await req.json();
+  if (!body || Object.keys(body).length === 0)
+    return new Response(JSON.stringify({ error: "Empty body" }), { status: 400 });
+
   try {
-    await dbConnect();
-    const { id } = params;
-    const updates = await req.json();
-    updates.updatedAt = new Date();
-    const task = await Task.findByIdAndUpdate(id, updates, { new: true });
-    if (!task) return new Response(JSON.stringify({ error: "Not found" }), { status: 404, headers: { "Content-Type": "application/json" } });
-    return new Response(JSON.stringify({ task }), { status: 200, headers: { "Content-Type": "application/json" } });
+    const updatedTask = await Task.findByIdAndUpdate(id, body, {
+      new: true,
+      runValidators: true,
+    }).lean();
+
+    if (!updatedTask) return new Response(JSON.stringify({ error: "Task not found" }), { status: 404 });
+
+    return new Response(JSON.stringify({ task: updatedTask }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (err) {
-    console.error("PUT /api/tasks/[id] error:", err);
-    return new Response(JSON.stringify({ error: "Failed to update" }), { status: 500, headers: { "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
 }
-
 export async function DELETE(req, { params }) {
-  try {
-    await dbConnect();
-    const { id } = params;
-    const task = await Task.findByIdAndDelete(id);
-    if (!task) return new Response(JSON.stringify({ error: "Not found" }), { status: 404, headers: { "Content-Type": "application/json" } });
-    return new Response(JSON.stringify({ success: true }), { status: 200, headers: { "Content-Type": "application/json" } });
-  } catch (err) {
-    console.error("DELETE /api/tasks/[id] error:", err);
-    return new Response(JSON.stringify({ error: "Failed to delete" }), { status: 500, headers: { "Content-Type": "application/json" } });
-  }
+  await dbConnect();
+  const { id } = params;
+  if (!id) return new Response(JSON.stringify({ error: "ID missing" }), { status: 400 });
+
+  const deletedTask = await Task.findByIdAndDelete(id);
+  if (!deletedTask) return new Response(JSON.stringify({ error: "Task not found" }), { status: 404 });
+
+  return new Response(JSON.stringify({ message: "Task deleted", task: deletedTask }), { status: 200, headers: { "Content-Type": "application/json" } });
 }

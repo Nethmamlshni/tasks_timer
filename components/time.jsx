@@ -35,8 +35,8 @@ export default function Time() {
   };
 
   return (
-    <div className=" flex flex-col items-center justify-center bg-pink-100 font-sans p-20 m-10">
-      <h1 className="text-4xl font-bold mb-8 text-purple-700">Timer ⏰</h1>
+    <div className=" flex flex-col items-center justify-center  font-sans p-20 m-10">
+      <h1 className="text-4xl font-bold mb-8 text-purple-700">Timer </h1>
       <div className="text-6xl font-mono mb-8 text-purple-900">{formatTime(time)}</div>
       <div className="flex gap-4">
         <button
