@@ -168,6 +168,7 @@ export default function TasksPage() {
       {/* ADD/UPDATE FORM */}
       <form onSubmit={editingId ? updateTask : createTask} className="mb-6 flex gap-3">
         <input
+        id="task-input"
           ref={inputRef}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
